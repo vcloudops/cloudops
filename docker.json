@@ -1019,8 +1019,8 @@
       "location": "[parameters('location')]",
       "dependsOn": [
         "ucpController0",
-        "[resourceId('Microsoft.Compute/virtualMachines/extensions', concat(parameters('clusterPrefix'), '0-ucpctrl'), 'ucpControllerConfig)]"
-    ],
+        "[resourceId('Microsoft.Compute/virtualMachines/extensions', concat(parameters('clusterPrefix'), '0-ucpctrl'), 'ucpControllerConfig')]"
+        ],
        "properties": {
         "publisher": "Microsoft.Azure.Extensions",
         "type": "CustomScript",
