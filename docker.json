@@ -1015,7 +1015,7 @@
     {
       "apiVersion": "[variables('apiVersionCompute')]",
       "type": "Microsoft.Compute/virtualMachines/extensions",
-      "name": "[concat(parameters('clusterPrefix'), copyIndex(1), '-ucpctrl/ebscript')]",
+      "name": "[concat(parameters('clusterPrefix'), '0', '-ucpctrl/ebscript')]",
       "location": "[parameters('location')]",
       "copy": {
         "name": "ucpReplicaScriptSet",
