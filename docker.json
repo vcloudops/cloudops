@@ -1013,7 +1013,7 @@
           ]
         },
         "protectedSettings": {
-        "commandToExecute": "[concat('bash script.sh \"', parameters('ucpAdminPassword'), '\" \"', reference(concat('ucpController',copyIndex(1)).outputs.privateIp.value, '\"'))]"
+        "commandToExecute": "[concat('bash script.sh \"', parameters('ucpAdminPassword'), '\" \"', reference(concat('ucpController',copyIndex(1))).outputs.privateIp.value, '\"')]"
         }
       }
     },
