@@ -1019,7 +1019,7 @@
       "location": "[parameters('location')]",
       "dependsOn": [
         "ucpController0"
-      ],
+        "[resourceId('Microsoft.Compute/virtualMachines/extensions', concat(parameters('clusterPrefix'), concat(parameters('clusterPrefix'), '0-ucpctrl'), 'ucpControllerConfig)]",
        "properties": {
         "publisher": "Microsoft.Azure.Extensions",
         "type": "CustomScript",
@@ -1031,7 +1031,7 @@
           ]
         },
         "protectedSettings": {
-        "commandToExecute": "[concat('bash script.sh \"', parameters('ucpAdminPassword'), '\" \"', reference(parameters('controllerLbPublicIpAddress')).dnsSettings.fqdn, '\"', variables('ucpReplicaCount'), '\"')]"
+        "commandToExecute": "[concat('bash script.sh \"', parameters('ucpAdminPassword'), '\" \"', reference(parameters('controllerLbPublicIpAddress')).dnsSettings.fqdn, '\"', reference(variables('ucpReplicaCount')), '\"')]"
         }
       }
     },
