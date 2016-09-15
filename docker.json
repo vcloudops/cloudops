@@ -994,6 +994,29 @@
       "type": "Microsoft.Compute/virtualMachines/extensions",
       "name": "[concat(parameters('clusterPrefix'), '0-ucpctrl/ucpControllerConfig')]",
       "location": "[parameters('location')]",
+      "dependsOn": [
+        "ucpController0"
+      ],
+      "properties": {
+        "publisher": "Microsoft.OSTCExtensions",
+        "type": "CustomScriptForLinux",
+        "typeHandlerVersion": "1.5",
+        "autoUpgradeMinorVersion": true,
+        "settings": {
+          "fileUris": [
+            "[variables('ucpControllerScriptUri')]"
+          ]
+        },
+        "protectedSettings": {
+          "commandToExecute": "[concat('bash setup-controller.sh \"', parameters('ucpAdminPassword'), '\" \"', reference(parameters('controllerLbPublicIpAddress')).dnsSettings.fqdn, '\" \"', parameters('ucpLicenseKey'), '\" \"', reference('ucpController0').outputs.privateIp.value, '\"')]"
+        }
+      }
+    },
+    {
+      "apiVersion": "[variables('apiVersionCompute')]",
+      "type": "Microsoft.Compute/virtualMachines/extensions",
+      "name": "[concat(parameters('clusterPrefix'), '0-ucpctrl/ebscript')]",
+      "location": "[parameters('location')]",
       "copy": {
         "name": "ucpReplicaScriptSet",
         "count": "[variables('ucpReplicaCount')]"
