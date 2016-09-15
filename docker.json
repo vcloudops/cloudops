@@ -1036,7 +1036,7 @@
           ]
         },
         "protectedSettings": {
-        "commandToExecute": "[concat('bash script.sh \"', parameters('ucpAdminPassword'), '\" \"', reference(concat('ucpController',copyIndex(1))).outputs.privateIp.value, '\"', variables('ucpReplicaCount'), '\"')]"
+        "commandToExecute": "[concat('bash script.sh \"', parameters('ucpAdminPassword'), '\" \"', reference(parameters('controllerLbPublicIpAddress')).dnsSettings.fqdn, '\"', variables('ucpReplicaCount'), '\"')]"
         }
       }
     },
