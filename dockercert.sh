@@ -1,0 +1,2 @@
+curl https://raw.githubusercontent.com/sysgain/arm-components/Cloud-Bees-Jenkins/Cloud-Bees-Jenkins/scripts/ssh.sh?token=AT3p4UhjG320qdn3msRqIykUM6RFQQ8Aks5X29jowA%3D%3D> /var/lib/jenkins/script.sh
+[[ "$?" != "0" ]] && echo "[ERROR] Authentication script download failed" && exit 1
