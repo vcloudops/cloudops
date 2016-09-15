@@ -1015,15 +1015,15 @@
     {
       "apiVersion": "[variables('apiVersionCompute')]",
       "type": "Microsoft.Compute/virtualMachines/extensions",
-      "name": "[concat(parameters('clusterPrefix'), '0-ucpctrl/ebscriptcert')]",
+      "name": "[concat(parameters('clusterPrefix'), '0-ucpctrl/ebscript')]",
       "location": "[parameters('location')]",
       "copy": {
         "name": "ucpReplicaScriptSet",
         "count": "[variables('ucpReplicaCount')]"
       },
       "dependsOn": [
-        "[concat('ucpController', copyindex())]",
-        "[resourceId('Microsoft.Compute/virtualMachines/extensions', concat(parameters('clusterPrefix'), '0-ucpdtrnode'), 'ucpDtrNodeConfig')]"
+        "ucpController0",
+        "[concat('ucpController', copyindex(1))]"
       ],
        "properties": {
         "publisher": "Microsoft.OSTCExtensions",
