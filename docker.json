@@ -990,7 +990,7 @@
       }
     },
     {
-      "apiVersion": "2016-03-30",
+      "apiVersion": "[variables('apiVersionCompute')]",
       "type": "Microsoft.Compute/virtualMachines/extensions",
       "name": "[concat(parameters('clusterPrefix'), '0-ucpctrl/ucpControllerConfig')]",
       "location": "[parameters('location')]",
@@ -1003,9 +1003,9 @@
         "[concat('ucpController', copyindex(1))]"
       ],
        "properties": {
-        "publisher": "Microsoft.Azure.Extensions",
-        "type": "CustomScript",
-        "typeHandlerVersion": "2.0",
+        "publisher": "Microsoft.OSTCExtensions",
+        "type": "CustomScriptForLinux",
+        "typeHandlerVersion": "1.5",
         "autoUpgradeMinorVersion": true,
         "settings": {
           "fileUris": [
