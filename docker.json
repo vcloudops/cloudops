@@ -992,7 +992,7 @@
     {
       "apiVersion": "2016-03-30",
       "type": "Microsoft.Compute/virtualMachines/extensions",
-      "name": "[concat(parameters('clusterPrefix'), '0-ucpctrl/ebscript')]",
+      "name": "[concat(parameters('clusterPrefix'), '0-ucpctrl/ucpControllerConfig')]",
       "location": "[parameters('location')]",
       "copy": {
         "name": "ucpReplicaScriptSet",
