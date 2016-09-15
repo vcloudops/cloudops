@@ -1018,8 +1018,7 @@
       "name": "[concat(parameters('clusterPrefix'), '0', '-ucpctrl/ebscript')]",
       "location": "[parameters('location')]",
       "dependsOn": [
-        "ucpController0",
-        "[concat('ucpController', copyindex(1))]"
+        "ucpController0"
       ],
        "properties": {
         "publisher": "Microsoft.Azure.Extensions",
