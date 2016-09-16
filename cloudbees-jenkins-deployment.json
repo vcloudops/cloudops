@@ -1,0 +1,464 @@
+{
+  "$schema": "http://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json#",
+  "contentVersion": "1.0.0.0",
+  "parameters": {
+    "location": {
+      "type": "string",
+      "defaultValue": "westus",
+      "metadata": {
+        "description": "The location where the solution will be deployed."
+      }
+    },
+    "storageAccountName": {
+      "type": "string",
+      "defaultValue": "cbsa",
+      "metadata": {
+        "description": "Unique DNS Name for the Storage Account where the Virtual Machine's disks will be placed."
+      }
+    },
+    "storageAccountType": {
+      "type": "string",
+      "defaultValue": "Standard_LRS",
+      "allowedValues": [
+        "Standard_LRS",
+        "Standard_GRS"
+      ]
+    },
+    "dnsNameForPublicIP": {
+      "type": "string",
+      "defaultValue": "cbdns",
+      "metadata": {
+        "description": "Unique DNS Name for the Public IP used to access the Jenkins Operations Center Web Front-End."
+      }
+    },
+    "JenkinsdnsNameForPublicIP": {
+      "type": "string",
+      "defaultValue": "jenkins-0-",
+      "metadata": {
+        "description": "Unique DNS Name for the Public IP used to access the Jenkins Operations Center Web Front-End."
+      }
+    },
+    "adminUsername": {
+      "type": "string",
+      "defaultValue": "cb-jenkins",
+      "metadata": {
+        "description": "User name for the Virtual Machine."
+      }
+    },
+    "adminPassword": {
+      "type": "securestring"
+    },
+    "jenkinsAdminPassword": {
+      "type": "securestring",
+      "metadata": {
+        "description": "Password for the 'admin' user on jenkins initial security setup."
+      }
+    },
+    "vmSize": {
+      "type": "string",
+      "metadata": {
+        "description": "VM Size"
+      },
+      "defaultValue": "Standard_A2"
+    },
+    "size": {
+      "type": "string",
+      "defaultValue": "Project",
+      "metadata": {
+        "description": "Size of your CloudBees Jenkins Platform deployment."
+      }
+    },
+    "armBaseUrl": {
+      "type": "string",
+      "defaultValue": "https://raw.githubusercontent.com/sysgain/CloudTry-CloudBees/master/cb-soln/Templates/nested/"
+    },
+    "armComponentUrl": {
+      "type": "string",
+      "defaultValue": "https://raw.githubusercontent.com/sysgain/CloudTry-CloudBees/master/cb-soln/Templates/"
+    }
+  },
+  "variables": {
+    "storageAccName": "[concat(parameters('storageAccountName'),uniqueString(resourceGroup().id))]",
+    "templateBaseUrl": "https://gallery.azure.com/artifact/20151001/cloudbees.jenkins-platformjenkins-platform.1.0.8/Artifacts",
+    "imagePublisher": "cloudbees",
+    "imageOfferjen": "jenkins-enterprise",
+    "imageSKUjen": "jenkins-enterprise",
+    "imageVersion": "latest",
+    "imageVersionOc": "16.6.3",
+    "imageVersionMaster": "16.6.1",
+    "Imageofferoc": "jenkins-operations-center",
+    "vmStorageAccountContainerName": "vhds",
+    "ocVmName": "operations-center",
+    "jenkinsVmName": "jenkins",
+    "jenkinsPublicIPName": "jenkins-pip",
+    "ocPublicIPName": "operations-center-pip",
+    "jenkinsnetworkInterfacesName": "jenkins-nic",
+    "ocNetworkInterfacesName": "operations-center-nic",
+    "networkSecurityGroupName": "nsg",
+    "virtualNetworkName": "MyVnet",
+    "subnet-id": "[concat(resourceId('Microsoft.Network/virtualNetworks','MyVNET'), '/subnets/jenkins-subnet')]",
+    "jenkinsPrivateIPAddress": "10.0.0.11",
+    "ocPrivateIPAddress": "10.0.0.10",
+    "vnetAddressPrefix": "10.0.0.0/16",
+    "subnet1Name": "jenkins-subnet",
+    "subnet1Prefix": "10.0.0.0/24",
+    "jenkinsDnsNameForPublicIP": "[concat(parameters('JenkinsdnsNameForPublicIP'),parameters('dnsNameForPublicIP'),uniqueString(resourceGroup().id))]",
+    "ocDnsNameForPublicIP": "[concat(parameters('dnsNameForPublicIP'),uniqueString(resourceGroup().id))]",
+    "networkApiVersion": "2015-06-15",
+    "subscription": "[subscription().subscriptionId]",
+    "computeApiVersion": "2015-06-15",
+    "clusterSpecProject": {
+      "numberOfMasters": 1,
+      "numberOfExecutors": 5,
+      "vmImageSku": "jenkins-operations-center-project"
+    },
+    "storageTemplateLink": "[concat(parameters('armBaseUrl'), 'storage.json')]",
+    "publicIPTemplateLink": "[concat(parameters('armBaseUrl'), 'public-ip.json')]",
+    "virtualNetworkResourceUrl": "[concat(parameters('armBaseUrl'), 'vnet-subnet.json')]",
+    "jenkinsVirtualMachineResourceUrl": "[concat(parameters('armComponentUrl'),'nested/jenkins-vm-latest.json')]",
+    "networkInterfacesResourceUrl": "[concat(parameters('armBaseUrl'), 'nic-static-private-ip.json')]",
+    "networkSecurityGroupResourceUrl": "[concat(parameters('armComponentUrl'), 'nested/jenkins-nsg.json')]",
+    "ocVirtualMachineResourceUrl": "[concat(parameters('armComponentUrl'),'nested/operationsvm-ext.json')]",
+    "dns": "[variables('ocDnsNameForPublicIP')]",
+    "FQdns": "[concat(variables('dns'),'.',parameters('location'),'.cloudapp.azure.com')]",
+    "mastersCount": "[variables('clusterSpecProject').numberOfMasters]",
+    "executorsCount": "[variables('clusterSpecProject').numberOfExecutors]",
+    "sku": "[variables('clusterSpecProject').vmImageSku]",
+    "mastersProperty": "[concat('com.cloudbees.jenkins.plugin.marketplace.azure.AzureMarketplace.masters=',variables('mastersCount'))]",
+    "executorsProperty": "[concat('com.cloudbees.jenkins.plugin.marketplace.azure.AzureMarketplace.executors=',variables('executorsCount'))]"
+  },
+  "resources": [
+    {
+      "apiVersion": "2015-01-01",
+      "name": "storageaccountResource",
+      "type": "Microsoft.Resources/deployments",
+      "properties": {
+        "mode": "Incremental",
+        "templateLink": {
+          "uri": "[variables('storageTemplateLink')]",
+          "contentVersion": "1.0.0.0"
+        },
+        "parameters": {
+          "storageAccountName": {
+            "value": "[variables('storageAccName')]"
+          },
+          "storageAccountType": {
+            "value": "[parameters('storageAccountType')]"
+          },
+          "location": {
+            "value": "[parameters('location')]"
+          }
+        }
+      }
+    },
+    {
+      "name": "networkSecurityGroupResource",
+      "apiVersion": "2015-01-01",
+      "type": "Microsoft.Resources/deployments",
+      "properties": {
+        "mode": "Incremental",
+        "templateLink": {
+          "uri": "[variables('networkSecurityGroupResourceUrl')]",
+          "contentVersion": "1.0.0.0"
+        },
+        "parameters": {
+          "location": {
+            "value": "[parameters('location')]"
+          },
+          "networkSecurityGroupName": {
+            "value": "[variables('networkSecurityGroupName')]"
+          },
+          "networkApiVersion": {
+            "value": "[variables('networkApiVersion')]"
+          }
+        }
+      }
+    },
+    {
+      "apiVersion": "2015-01-01",
+      "name": "jenkinsPublicIPTemplate",
+      "type": "Microsoft.Resources/deployments",
+      "properties": {
+        "mode": "Incremental",
+        "templateLink": {
+          "uri": "[variables('publicIPTemplateLink')]",
+          "contentVersion": "1.0.0.0"
+        },
+        "parameters": {
+          "publicIPAddressName": {
+            "value": "[variables('jenkinsPublicIPName')]"
+          },
+          "publicIPdnsPrefix": {
+            "value": "[variables('jenkinsDnsNameForPublicIP')]"
+          },
+          "location": {
+            "value": "[parameters('location')]"
+          }
+        }
+      }
+    },
+    {
+      "name": "jenkinsNetworkInterfacesResource",
+      "apiVersion": "2015-01-01",
+      "type": "Microsoft.Resources/deployments",
+      "dependsOn": [
+        "jenkinsPublicIPTemplate",
+        "networkSecurityGroupResource"
+      ],
+      "properties": {
+        "mode": "Incremental",
+        "templateLink": {
+          "uri": "[variables('networkInterfacesResourceUrl')]",
+          "contentVersion": "1.0.0.0"
+        },
+        "parameters": {
+          "location": {
+            "value": "[parameters('location')]"
+          },
+          "networkInterfaceName": {
+            "value": "[variables('jenkinsNetworkInterfacesName')]"
+          },
+          "networkSecurityGroupName": {
+            "value": "[variables('networkSecurityGroupName')]"
+          },
+          "publicIPAddressName": {
+            "value": "[variables('jenkinsPublicIPName')]"
+          },
+          "subnetRef": {
+            "value": "[variables('subnet-id')]"
+          },
+          "networkApiVersion": {
+            "value": "[variables('networkApiVersion')]"
+          },
+          "privateIPAddress": {
+            "value": "[variables('jenkinsPrivateIPAddress')]"
+          }
+        }
+      }
+    },
+    {
+      "apiVersion": "2015-01-01",
+      "name": "ocpublicIPTemplate",
+      "type": "Microsoft.Resources/deployments",
+      "properties": {
+        "mode": "Incremental",
+        "templateLink": {
+          "uri": "[variables('publicIPTemplateLink')]",
+          "contentVersion": "1.0.0.0"
+        },
+        "parameters": {
+          "publicIPAddressName": {
+            "value": "[variables('ocPublicIPName')]"
+          },
+          "publicIPdnsPrefix": {
+            "value": "[variables('ocDnsNameForPublicIP')]"
+          },
+          "location": {
+            "value": "[parameters('location')]"
+          }
+        }
+      }
+    },
+    {
+      "name": "ocNetworkInterfacesResource",
+      "apiVersion": "2015-01-01",
+      "type": "Microsoft.Resources/deployments",
+      "dependsOn": [
+        "ocpublicIPTemplate",
+        "networkSecurityGroupResource"
+      ],
+      "properties": {
+        "mode": "Incremental",
+        "templateLink": {
+          "uri": "[variables('networkInterfacesResourceUrl')]",
+          "contentVersion": "1.0.0.0"
+        },
+        "parameters": {
+          "location": {
+            "value": "[parameters('location')]"
+          },
+          "networkInterfaceName": {
+            "value": "[variables('ocNetworkInterfacesName')]"
+          },
+          "networkSecurityGroupName": {
+            "value": "[variables('networkSecurityGroupName')]"
+          },
+          "publicIPAddressName": {
+            "value": "[variables('ocPublicIPName')]"
+          },
+          "subnetRef": {
+            "value": "[variables('subnet-id')]"
+          },
+          "networkApiVersion": {
+            "value": "[variables('networkApiVersion')]"
+          },
+          "privateIPAddress": {
+            "value": "[variables('ocPrivateIPAddress')]"
+          }
+        }
+      }
+    },
+    {
+      "name": "ocVirtualMachineResource",
+      "apiVersion": "2015-01-01",
+      "type": "Microsoft.Resources/deployments",
+      "dependsOn": [
+        "storageaccountResource",
+        "ocNetworkInterfacesResource"
+      ],
+      "properties": {
+        "mode": "Incremental",
+        "templateLink": {
+          "uri": "[variables('ocVirtualMachineResourceUrl')]",
+          "contentVersion": "1.0.0.0"
+        },
+        "parameters": {
+          "location": {
+            "value": "[parameters('location')]"
+          },
+          "vmName": {
+            "value": "[variables('ocVmName')]"
+          },
+          "vmSize": {
+            "value": "[parameters('vmSize')]"
+          },
+          "vmStorageAccountContainerName": {
+            "value": "[variables('vmStorageAccountContainerName')]"
+          },
+          "adminUsername": {
+            "value": "[parameters('adminUsername')]"
+          },
+          "adminPassword": {
+            "value": "[parameters('adminPassword')]"
+          },
+          "imagePublisher": {
+            "value": "[variables('imagePublisher')]"
+          },
+          "imageOffer": {
+            "value": "[variables('Imageofferoc')]"
+          },
+          "imageSKU": {
+            "value": "[variables('sku')]"
+          },
+          "imageVersion": {
+            "value": "[variables('imageVersionOc')]"
+          },
+          "storageAccountName": {
+            "value": "[variables('storageAccName')]"
+          },
+          "networkInterfaceName": {
+            "value": "[variables('ocNetworkInterfacesName')]"
+          },
+          "mastersProperty": {
+            "value": "[variables('mastersProperty')]"
+          },
+          "executorsProperty": {
+            "value": "[variables('executorsProperty')]"
+          },
+          "size": {
+            "value": "[parameters('size')]"
+          },
+          "FQdns": {
+            "value": "[variables('FQdns')]"
+          },
+          "subscription": {
+            "value": "[variables('subscription')]"
+          },
+          "templateBaseUrl": {
+            "value": "[variables('templateBaseUrl')]"
+          },
+          "jenkinsAdminPassword": {
+            "value": "[parameters('jenkinsAdminPassword')]"
+          },
+          "mastersCount": {
+            "value": "[variables('mastersCount')]"
+          }
+        }
+      }
+    },
+    {
+      "name": "jenkinsVirtualMachineResource",
+      "apiVersion": "2015-01-01",
+      "type": "Microsoft.Resources/deployments",
+      "dependsOn": [
+        "storageaccountResource",
+        "jenkinsNetworkInterfacesResource",
+        "ocVirtualMachineResource"
+      ],
+      "properties": {
+        "mode": "Incremental",
+        "templateLink": {
+          "uri": "[variables('jenkinsVirtualMachineResourceUrl')]",
+          "contentVersion": "1.0.0.0"
+        },
+        "parameters": {
+          "location": {
+            "value": "[parameters('location')]"
+          },
+          "vmName": {
+            "value": "[variables('jenkinsVmName')]"
+          },
+          "vmSize": {
+            "value": "[parameters('vmSize')]"
+          },
+          "vmStorageAccountContainerName": {
+            "value": "[variables('vmStorageAccountContainerName')]"
+          },
+          "adminUsername": {
+            "value": "[parameters('adminUsername')]"
+          },
+          "adminPassword": {
+            "value": "[parameters('adminPassword')]"
+          },
+          "imagePublisher": {
+            "value": "[variables('imagePublisher')]"
+          },
+          "imageOffer": {
+            "value": "[variables('imageOfferjen')]"
+          },
+          "imageSKU": {
+            "value": "[variables('imageSKUjen')]"
+          },
+          "imageVersion": {
+            "value": "[variables('imageVersionMaster')]"
+          },
+          "storageAccountName": {
+            "value": "[variables('storageAccName')]"
+          },
+          "networkInterfaceName": {
+            "value": "[variables('jenkinsNetworkInterfacesName')]"
+          },
+          "size": {
+            "value": "[parameters('size')]"
+          },
+          "FQdns": {
+            "value": "[variables('FQdns')]"
+          },
+          "subscription": {
+            "value": "[variables('subscription')]"
+          },
+          "templateBaseUrl": {
+            "value": "[variables('templateBaseUrl')]"
+          },
+          "jenkinsAdminPassword": {
+            "value": "[parameters('jenkinsAdminPassword')]"
+          }
+        }
+      }
+    }
+  ],
+  "outputs": {
+    "cloudbees-operations-center-url": {
+      "value": "[variables('FQdns')]",
+      "type": "string"
+    },
+    "jenkins-portal-usrname": {
+      "value": "admin",
+      "type": "string"
+    },
+    "jenkins-portal-password": {
+      "value": "[parameters('jenkinsAdminPassword')]",
+      "type": "string"
+    }
+  }
+}
