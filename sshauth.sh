@@ -45,6 +45,8 @@ which expect > /dev/null 2>&1
 [[ "$USERNAME" == "" ]] && echo "[ERROR] -u option is required. " && exit 1
 [[ "$PASSWORD" == "" ]] && echo "[ERROR] -p option is required. " && exit 1
 
+echo $PASSWORD
+
  
 #printf "Are you sure $USERNAME/$PASSWORD is correct login credential for $REMOTE_HOST? If not, $USERNAME might be banned after running this script. [NO/yes]: "
 #[[ "$MODE" == "" ]] && read input && [[ "$input" != "yes" ]] && exit 0
