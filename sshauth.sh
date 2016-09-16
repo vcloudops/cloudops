@@ -2,7 +2,7 @@
  
 Usage(){
     echo "This script is to setup password-less ssh login from current host to a given remote host."
-    echo "`basename $0` [-h <Remote Hostname>] [-u <username to login>] [-p <password to login>]"
+    echo "`basename $0` [-h <Mater Controller LB DNS>] [-u <username to login>] [-p <password to login>] [-port <ssh port number>]"
 }
  
 if [ "$1" == "" ]; then
@@ -20,6 +20,9 @@ while [ "$1" != "" ]; do
         ;;
     -p  )   shift
         PASSWORD=$1
+        ;;
+    -port  )   shift
+        PORT=$1
         ;;
     -q  )    shift
         MODE="QUIET"
@@ -70,7 +73,7 @@ fi
 [[ ! -f "$ID_RSA" ]] && echo "[ERROR] $ID_RSA not found" && exit 1
  
 ### check remote host ~/.ssh dir
-cmd="ssh $USERNAME@$REMOTE_HOST ls .ssh"
+cmd="ssh -p $PORT $USERNAME@$REMOTE_HOST ls .ssh"
 expect <<- DONE
   spawn $cmd
   expect {
@@ -84,7 +87,7 @@ DONE
  
 if [ "$?" != "0" ]; then
     ### mkdir ~/.ssh
-cmd="ssh $USERNAME@$REMOTE_HOST mkdir .ssh"
+cmd="ssh -p $PORT $USERNAME@$REMOTE_HOST mkdir .ssh"
 expect <<- DONE
   spawn $cmd
   expect {
@@ -95,7 +98,7 @@ expect <<- DONE
 DONE
  
 ### give 700 permission to .ssh
-cmd="ssh $USERNAME@$REMOTE_HOST chmod 700 .ssh"
+cmd="ssh -p $PORT $USERNAME@$REMOTE_HOST chmod 700 .ssh"
 expect <<- DONE
   spawn $cmd
   expect {
@@ -105,7 +108,7 @@ expect <<- DONE
  
 DONE
  
-cmd="ssh $USERNAME@$REMOTE_HOST touch .ssh/authorized_keys"
+cmd="ssh -p $PORT $USERNAME@$REMOTE_HOST touch .ssh/authorized_keys"
 expect <<- DONE
   spawn $cmd
   expect {
@@ -119,7 +122,7 @@ fi
  
 ### remove possible already exist entry in ~/.ssh/authorized_keys
 WHOAMI="`whoami`@`hostname`"
-cmd="ssh $USERNAME@$REMOTE_HOST \"sed '/$WHOAMI/d' .ssh/authorized_keys > .ssh/authorized_keys.1; mv .ssh/authorized_keys.1 .ssh/authorized_keys\""
+cmd="ssh -p $PORT $USERNAME@$REMOTE_HOST \"sed '/$WHOAMI/d' .ssh/authorized_keys > .ssh/authorized_keys.1; mv .ssh/authorized_keys.1 .ssh/authorized_keys\""
 expect <<- DONE
   spawn $cmd
   expect {
@@ -130,7 +133,7 @@ expect <<- DONE
 DONE
  
 ### scp id_rsa.pub over to remote host
-cmd="scp $ID_RSA $USERNAME@$REMOTE_HOST:.ssh/id_rsa-`hostname`.pub"
+cmd="scp -p $PORT $ID_RSA $USERNAME@$REMOTE_HOST:.ssh/id_rsa-`hostname`.pub"
 expect <<- DONE
   spawn $cmd
   expect {
@@ -142,7 +145,7 @@ DONE
  
 [[ "$?" != "0" ]] && echo "[ERROR] Failed to scp $ID_RSA to remote host." && exit 1
  
-cmd="ssh $USERNAME@$REMOTE_HOST cat .ssh/id_rsa-`hostname`.pub >> .ssh/authorized_keys"
+cmd="ssh -p $PORT $USERNAME@$REMOTE_HOST cat .ssh/id_rsa-`hostname`.pub >> .ssh/authorized_keys"
 expect <<- DONE
   spawn $cmd
   expect {
@@ -154,7 +157,7 @@ DONE
  
 [[ "$?" != "0" ]] && echo "[ERROR] Failed to append id_rsa to remote host." && exit 1
  
-cmd="ssh $USERNAME@$REMOTE_HOST chmod 644 .ssh/authorized_keys"
+cmd="ssh -p $PORT $USERNAME@$REMOTE_HOST chmod 644 .ssh/authorized_keys"
 expect <<- DONE
   spawn $cmd
   expect {
@@ -164,7 +167,7 @@ expect <<- DONE
  
 DONE
  
-ssh $USERNAME@$REMOTE_HOST ls > /dev/null 2>&1
+ssh -p $PORT $USERNAME@$REMOTE_HOST ls > /dev/null 2>&1
  
 [[ "$?" != "0" ]] && echo "[ERROR] passwordless login setup failed." && exit 1
 echo "[COMPLETE] passwordless ssh from `hostname` to $REMOTE_HOST has been established."
