@@ -35,6 +35,8 @@ do
         echo $INSTANCEIP
         sshpass -p $PASSWORD scp -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no $DESTDIR/backup.tar $USERNAME@$INSTANCEIP:/tmp
         sshpass -p $PASSWORD ssh -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no $USERNAME@$INSTANCEIP 'sudo docker run --rm  --name ucp -v /var/run/docker.sock:/var/run/docker.sock  docker/ucp:1.1.0 id 1 > /tmp/id'
+        INSTANCEDID=`sshpass -p $PASSWORD ssh -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no $USERNAME@$INSTANCEIP 'cat /tmp/id'`
+        echo $INSTANCEDID; sleep 5
         sshpass -p $PASSWORD ssh -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no $USERNAME@$INSTANCEIP 'INSTANCEID=$(cat /tmp/id)'
         sshpass -p $PASSWORD ssh -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no $USERNAME@$INSTANCEIP 'sudo docker run --rm -i --name ucp -v /var/run/docker.sock:/var/run/docker.sock docker/ucp restore --root-ca-only --passphrase ddconazure --id $(cat /tmp/id) < /tmp/backup.tar'
 done
