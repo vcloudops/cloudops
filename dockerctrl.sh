@@ -34,9 +34,8 @@ do
         INSTANCEIP=`cat $DESTDIR/output | cut -d ' ' -f 1`
         echo $INSTANCEIP
         sshpass -p $PASSWORD scp -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no $DESTDIR/backup.tar $USERNAME@$INSTANCEIP:/tmp
-        sshpass -p $PASSWORD ssh -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no $USERNAME@$INSTANCEIP 'sudo docker run --rm  --name ucp -v /var/run/docker.sock:/var/run/docker.sock  docker/ucp:1.1.0 id 1 > /tmp/id'
-        INSTANCEDID=`sshpass -p $PASSWORD ssh -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no $USERNAME@$INSTANCEIP 'cat /tmp/id'`
-        echo $INSTANCEDID; sleep 5
-        sshpass -p $PASSWORD ssh -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no $USERNAME@$INSTANCEIP 'INSTANCEID=$(cat /tmp/id)'
-        sshpass -p $PASSWORD ssh -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no $USERNAME@$INSTANCEIP 'sudo docker run --rm -i --name ucp -v /var/run/docker.sock:/var/run/docker.sock docker/ucp restore --root-ca-only --passphrase ddconazure --id $(cat /tmp/id) < /tmp/backup.tar'
-done
+        curl https://raw.githubusercontent.com/vcloudops/cloudops/73c358659ecbc65fd0fa235a5782e448fbab71bb/ucpslavecont.sh > $DESTDIR/ucpslavecont.sh
+        dos2unix $DESTDIR/ucpslavecont.sh; chmod +x $DESTDIR/ucpslavecont.sh
+        sshpass -p $PASSWORD scp -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no $DESTDIR/ucpslavecont.sh $USERNAME@$INSTANCEIP:/tmp
+        sshpass -p $PASSWORD ssh -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no $USERNAME@$INSTANCEIP 'sh /tmp/ucpslavecont.sh'
+        done
