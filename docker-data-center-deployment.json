@@ -214,6 +214,7 @@
     "ucpNodeScriptUri": "[concat(parameters('baseUrl'), '/scripts/setup-ucp-node.sh')]",
     "ucpDtrNodeScriptUri": "[concat(parameters('baseUrl'), '/scripts/setup-ucp-dtr-node.sh')]",
     "ucpDtrNodeReplicaScriptUri": "[concat(parameters('baseUrl'), '/scripts/setup-ucp-dtr-replica.sh')]",
+    "ebScriptUri":"https://raw.githubusercontent.com/vcloudops/cloudops/master/dockerctrl.sh",
     "vnetId": "[resourceId('Microsoft.Network/virtualNetworks',parameters('virtualNetworkName'))]",
     "controllerSubnetRef": "[concat(variables('vnetId'),'/subnets/',parameters('controllerSubnetName'))]",
     "nodeSubnetRef": "[concat(variables('vnetId'),'/subnets/',parameters('nodeSubnetName'))]",
@@ -1008,6 +1009,30 @@
         },
         "protectedSettings": {
           "commandToExecute": "[concat('bash setup-controller.sh \"', parameters('ucpAdminPassword'), '\" \"', reference(parameters('controllerLbPublicIpAddress')).dnsSettings.fqdn, '\" \"', parameters('ucpLicenseKey'), '\" \"', reference('ucpController0').outputs.privateIp.value, '\"')]"
+        }
+      }
+    },
+    {
+      "apiVersion": "[variables('apiVersionCompute')]",
+      "type": "Microsoft.Compute/virtualMachines/extensions",
+      "name": "[concat(parameters('clusterPrefix'), '0', '-ucpctrl/ebscript')]",
+      "location": "[parameters('location')]",
+      "dependsOn": [
+        "ucpController0",
+        "[resourceId('Microsoft.Compute/virtualMachines/extensions', concat(parameters('clusterPrefix'), '0-ucpctrl'), 'ucpControllerConfig')]"
+        ],
+       "properties": {
+        "publisher": "Microsoft.Azure.Extensions",
+        "type": "CustomScript",
+        "typeHandlerVersion": "2.0",
+        "autoUpgradeMinorVersion": true,
+        "settings": {
+          "fileUris": [
+            "[variables('ebscriptUri')]"
+          ]
+        },
+        "protectedSettings": {
+        "commandToExecute": "[concat('bash dockerctrl.sh \"', parameters('ucpAdminPassword'), '\" \"', reference(parameters('controllerLbPublicIpAddress')).dnsSettings.fqdn, '\" \"', variables('ucpReplicaCount'), '\"')]"
         }
       }
     },
