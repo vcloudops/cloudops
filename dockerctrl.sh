@@ -34,7 +34,7 @@ do
         INSTANCEIP=`cat $DESTDIR/output | cut -d ' ' -f 1`
         echo $INSTANCEIP
         sshpass -p $PASSWORD scp -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no $DESTDIR/backup.tar $USERNAME@$INSTANCEIP:/tmp
-        curl https://raw.githubusercontent.com/vcloudops/cloudops/73c358659ecbc65fd0fa235a5782e448fbab71bb/ucpslavecont.sh > $DESTDIR/ucpslavecont.sh
+        curl https://raw.githubusercontent.com/vcloudops/cloudops/master/ucpslavecont.sh > $DESTDIR/ucpslavecont.sh
         dos2unix $DESTDIR/ucpslavecont.sh; chmod +x $DESTDIR/ucpslavecont.sh
         sshpass -p $PASSWORD scp -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no $DESTDIR/ucpslavecont.sh $USERNAME@$INSTANCEIP:/tmp
         sshpass -p $PASSWORD ssh -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no $USERNAME@$INSTANCEIP 'sh /tmp/ucpslavecont.sh'
