@@ -1,4 +1,5 @@
 #!/bin/bash
+sleep 900
 Usage(){
     echo "This script is to setup password-less ssh login from current host to a given remote host."
 }
