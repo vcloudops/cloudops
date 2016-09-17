@@ -15,3 +15,4 @@ sudo update-ca-certificates
 sudo usermod -aG docker Jenkins
 sleep 5
 sudo service docker restart
+sudo service jenkins restart
