@@ -38,5 +38,5 @@ do
         curl https://raw.githubusercontent.com/vcloudops/cloudops/master/ucpslavecont.sh > $DESTDIR/ucpslavecont.sh
         dos2unix $DESTDIR/ucpslavecont.sh; chmod +x $DESTDIR/ucpslavecont.sh
         sshpass -p $PASSWORD scp -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no $DESTDIR/ucpslavecont.sh $USERNAME@$INSTANCEIP:/tmp
-        sshpass -p $PASSWORD ssh -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no $USERNAME@$INSTANCEIP 'sh /tmp/ucpslavecont.sh'
+        sudo -H -u ucpadmin sshpass -p $PASSWORD ssh -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no $USERNAME@$INSTANCEIP 'sh /tmp/ucpslavecont.sh'
         done
